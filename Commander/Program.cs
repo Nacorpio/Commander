@@ -31,6 +31,9 @@ namespace Commander
             /// </summary>
             public bool Optional { get; set; }
 
+            /// <summary>
+            /// Returns whether this parameter is required.
+            /// </summary>
             public bool Required { get; set; }
 
             public static Parameter Parse(string name, object defaultValue, bool optional) {
@@ -48,20 +51,33 @@ namespace Commander
             }
 
             public sealed override string ToString() {
-                return 
 
-                    Optional ? 
-                            "[" + Name + "]":
+                return
 
-                    Required ? 
-                            "(" + Name + ")":
-                            "<" + Name + ">";
+                    Optional ?      
+                        "[" + Name + "]"
+
+                    : Required ?    
+                        "(" + Name + ")"
+
+                    :               
+                        "<" + Name + ">"
+
+                    ;
 
             }
 
         }
 
+        /// <summary>
+        /// Returns the name of this command.
+        /// </summary>
         public abstract string Name { get; }
+
+        /// <summary>
+        /// Returns the description of this command.
+        /// </summary>
+        public abstract string Description { get; }
 
         /// <summary>
         /// Returns the parameters of this command.
@@ -145,12 +161,23 @@ namespace Commander
             }
         }
 
+        public override string Description {
+            get {
+                return "This is just an example command.";
+            }
+        }
     }
 
     public class CommandCmdHelp : Command {
         public override string Name {   
             get {
                 return "help";
+            }
+        }
+
+        public override string Description {
+            get {
+                return "Shows either information about a specific command, or a list of all commands.";
             }
         }
 
@@ -171,18 +198,15 @@ namespace Commander
             if (args != null && args.Length == 1) {
 
                 // TODO: Check if the command is within the list.
-                if (Program.HasCommand(args[0])) {
-
-                    Command cmd = Program.GetCommand(args[0]);
+                if (Program.HasCommand(args[0]));
+                    var cmd = Program.GetCommand(args[0]);
                     Console.WriteLine(cmd.Name + ": " + cmd.ToString());
-
-                }
                
             } else {
 
                 for (int i = 0; i < Program.listCommands.Count; i++) {
 
-                    Command cmd = Program.listCommands[i];
+                    var cmd = Program.listCommands[i];
                     Run(new string[] {cmd.Name});
 
                 }
@@ -252,15 +276,21 @@ namespace Commander
                     // TODO: We have arguments to care of.
 
                     if (!(pars.Length >= cmd.MinArguments)) {
+
                         Console.WriteLine("Too few arguments were passed to the command '" + cmd.Name + "' (" + pars.Length + "/" + cmd.MinArguments + ").");
                         Console.ReadLine();
+
                         return;
+
                     }
 
                     if (!(pars.Length <= cmd.MaxArguments)) {
+
                         Console.WriteLine("Too many arguments were passed to the command '" + cmd.Name + "' (" + pars.Length + "/" + cmd.MaxArguments + ").");
                         Console.ReadLine();
+
                         return;
+
                     }
 
                     cmd.Run(pars);
@@ -283,9 +313,17 @@ namespace Commander
 
         }
 
+        public static void AddCommand(Command cmd) {
+            if (!HasCommand(cmd.Name)) {
+                listCommands.Add(cmd);
+            } else {
+                Console.WriteLine("Internal error: Can not add the specified command (already exists).");  
+            }
+        }
+
         public static Command GetCommand(string name) {
-            for (int i = 0; i < listCommands.Count; i++) {
-                Command e = listCommands[i];
+            for (var i = 0; i < listCommands.Count; i++) {
+                var e = listCommands[i];
                 if (e.Name == name)
                     return e;
             }

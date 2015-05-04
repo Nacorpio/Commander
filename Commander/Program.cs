@@ -14,6 +14,7 @@ namespace Commander
     {
 
         public class Parameter {
+
             /// <summary>
             /// Returns the name of this parameter.
             /// </summary>
@@ -34,40 +35,67 @@ namespace Commander
 
             public static Parameter Parse(string name, object defaultValue, bool optional) {
 
-                Parameter par = new Parameter();
+                var par = new Parameter() {
 
-                par.Name = name;
-                par.DefaultValue = defaultValue;
-                par.Optional = optional;
+                    Name = name,
+                    DefaultValue = defaultValue,
+                    Optional = optional
+
+                };
 
                 return par;
 
             }
 
             public sealed override string ToString() {
-                return Optional ? "[" + Name + "]" : Required ? "(" + Name + ")" : "<" + Name + ">";
+                return 
+
+                    Optional ? 
+                            "[" + Name + "]":
+
+                    Required ? 
+                            "(" + Name + ")":
+                            "<" + Name + ">";
+
             }
+
         }
 
-        public abstract string Name();
+        public abstract string Name { get; }
 
-        public abstract Parameter[] Parameters();
+        /// <summary>
+        /// Returns the parameters of this command.
+        /// </summary>
+        /// <returns></returns>
+        public abstract Parameter[] Parameters { get; }
 
-        public abstract int MinArguments();
+        /// <summary>
+        /// Returns the minimum amount of arguments that can be passed into this command.
+        /// </summary>
+        /// <returns></returns>
+        public abstract int MinArguments { get; }
 
-        public abstract int MaxArguments();
+        /// <summary>
+        /// Returns the maximum amount of arguments that can be passed into this command.
+        /// </summary>
+        /// <returns></returns>
+        public abstract int MaxArguments { get; }
 
+        /// <summary>
+        /// Runs this command with the specified
+        /// </summary>
+        /// <param name="args"></param>
         public abstract void Run(string[] args = null);
 
         public sealed override string ToString() {
 
-            string value = "!" + Name() + " ";
+            string value = "!" + Name + " ";
 
-            for (int i = 0; i < Parameters().Length; i++) {
+            for (int i = 0; i < Parameters.Length; i++) {
 
-                Parameter e = Parameters()[i];
+                Parameter e = Parameters[i];
 
-                if (i < Parameters().Length - 1) {
+                if (i < Parameters.Length - 1) {
                     value += e.ToString() + " ";
                 } else {
                     value += e.ToString();
@@ -82,6 +110,7 @@ namespace Commander
     }
 
     public class CommandExample : Command {
+        
         public override void Run(string[] args = null) {
             if (args == null) {
                 Console.WriteLine("This is an example, bitch!");
@@ -90,34 +119,51 @@ namespace Commander
             }
         }
 
-        public override int MaxArguments() {
-            return 1;
+        public override int MaxArguments {
+            get {
+                return 1;
+            }
         }
 
-        public override int MinArguments() {
-            return 1;
+        public override int MinArguments {
+            get {
+                return 0;
+            }
         }
 
-        public override Parameter[] Parameters() {
-            return new Parameter[] {Parameter.Parse("arg1", null, true)};
+        public override Parameter[] Parameters {
+            get {
+                return new Parameter[] {
+                    Parameter.Parse("arg1", null, true)
+                };
+            }
         }
 
-        public override string Name() {
-            return "example";
+        public override string Name {
+            get {
+                return "example";
+            }
         }
+
     }
 
     public class CommandCmdHelp : Command {
-        public override string Name() {
-            return "help";
+        public override string Name {   
+            get {
+                return "help";
+            }
         }
 
-        public override Parameter[] Parameters() {
-            return new Parameter[] {Parameter.Parse("cmd", null, true)};
+        public override Parameter[] Parameters {
+            get {
+                return new Parameter[] {Parameter.Parse("cmd", null, true)};
+            }        
         }
 
-        public override int MinArguments() {
-            return 0;
+        public override int MinArguments {
+            get {
+               return 0; 
+            }
         }
 
         public override void Run(string[] args = null) {
@@ -128,16 +174,16 @@ namespace Commander
                 if (Program.HasCommand(args[0])) {
 
                     Command cmd = Program.GetCommand(args[0]);
-                    Console.WriteLine(cmd.Name() + ": " + cmd.ToString());
+                    Console.WriteLine(cmd.Name + ": " + cmd.ToString());
 
                 }
                
             } else {
 
-                for (int i = 0; i < Program.commands.Count; i++) {
+                for (int i = 0; i < Program.listCommands.Count; i++) {
 
-                    Command cmd = Program.commands[i];
-                    Run(new string[] {cmd.Name()});
+                    Command cmd = Program.listCommands[i];
+                    Run(new string[] {cmd.Name});
 
                 }
 
@@ -145,14 +191,17 @@ namespace Commander
 
         }
 
-        public override int MaxArguments() {
-            return 1;
+        public override int MaxArguments {
+            get {
+               return 1; 
+            }       
         }
+
     }
 
     class Program {
 
-        public static List<Command> commands = new List<Command>(); 
+        public readonly static List<Command> listCommands = new List<Command>(); 
 
         static void Main(string[] args) {
 
@@ -162,18 +211,17 @@ namespace Commander
 
             while (true) {
 
-                Console.WriteLine("Enter a command: ");
-                string input = Console.ReadLine();
-
+                string cmdInput = Console.ReadLine();
                 string name = "";
                 string[] pars = null;
 
-                input = input.Trim();
+                cmdInput = cmdInput.Trim();
 
-                if (input.Contains(" ")) {
+                if (cmdInput.Contains(" ")) {
                 
                     // TODO: There are arguments to take care of.
-                    string[] parts = input.Split(' ');
+
+                    string[] parts = cmdInput.Split(' ');
 
                     name = parts[0].Substring(1, parts[0].Length - 1);
 
@@ -181,33 +229,36 @@ namespace Commander
                         throw new Exception("The name of the command '" + name + "' can not be empty.");
                     }
 
-                    input = input.Remove(0, name.Length + 1).Trim();
+                    cmdInput = cmdInput.Remove(0, name.Length + 1).Trim();
 
-                    if (input.Length == 0 || String.IsNullOrEmpty(input)) {
+                    if (cmdInput.Length == 0 || String.IsNullOrEmpty(cmdInput)) {
                         throw new Exception("The arguments of the command '" + name + "' can not be empty.");
                     }
 
-                    pars = input.Split(' ');
+                    pars = cmdInput.Split(' ');
 
                 } else {
 
-                    name = input.Substring(1, input.Length - 1);
+                    name = cmdInput.Substring(1, cmdInput.Length - 1);
                     pars = null;
 
                 }
 
                 Command cmd = GetCommand(name);
-                if (pars != null && cmd.Parameters() != null) {
+                Console.WriteLine();
+
+                if (pars != null && cmd.Parameters != null) {
 
                     // TODO: We have arguments to care of.
-                    if (!(pars.Length >= cmd.MinArguments())) {
-                        Console.WriteLine("Too few arguments were passed to this command (" + pars.Length + "/" + cmd.MinArguments() + ").");
+
+                    if (!(pars.Length >= cmd.MinArguments)) {
+                        Console.WriteLine("Too few arguments were passed to the command '" + cmd.Name + "' (" + pars.Length + "/" + cmd.MinArguments + ").");
                         Console.ReadLine();
                         return;
                     }
 
-                    if (!(pars.Length <= cmd.MaxArguments())) {
-                        Console.WriteLine("Too many arguments were passed to this command (" + pars.Length + "/" + cmd.MaxArguments() + ").");
+                    if (!(pars.Length <= cmd.MaxArguments)) {
+                        Console.WriteLine("Too many arguments were passed to the command '" + cmd.Name + "' (" + pars.Length + "/" + cmd.MaxArguments + ").");
                         Console.ReadLine();
                         return;
                     }
@@ -217,13 +268,15 @@ namespace Commander
                 } else {
 
                     // TODO: We don't have any arguments to take care of.
-                    if (cmd.MinArguments() == 0)
+
+                    if (cmd.MinArguments == 0)
                         cmd.Run();
                     else
                         Console.WriteLine("The Command.MinArguments has to be set to (0).");
 
                 }
 
+                Console.WriteLine();
                 loop++; // Loops every loop. (duh)
 
             }
@@ -231,9 +284,9 @@ namespace Commander
         }
 
         public static Command GetCommand(string name) {
-            for (int i = 0; i < commands.Count; i++) {
-                Command e = commands[i];
-                if (e.Name() == name)
+            for (int i = 0; i < listCommands.Count; i++) {
+                Command e = listCommands[i];
+                if (e.Name == name)
                     return e;
             }
             return null;
@@ -244,8 +297,8 @@ namespace Commander
         }
 
         private static void InitializeCommands() {
-            commands.Add(new CommandExample());
-            commands.Add(new CommandCmdHelp());
+            listCommands.Add(new CommandExample());
+            listCommands.Add(new CommandCmdHelp());
         }
 
     }

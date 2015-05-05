@@ -11,10 +11,6 @@ using Commander.Classes;
 namespace Commander
 {
 
-    
-
-    
-
     class Program {
 
         public readonly static List<Command> listCommands = new List<Command>(); 

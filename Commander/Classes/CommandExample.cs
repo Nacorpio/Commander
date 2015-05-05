@@ -8,12 +8,15 @@ namespace Commander.Classes {
 
     public class CommandExample : Command {
 
-        public override void Run(string[] args = null) {
+        public override bool Run(string[] args = null) {
             if (args == null) {
-                Console.WriteLine("This is an example, bitch!");
+                Console.WriteLine("This is an example!");
+                return true;
             } else if (args.Length == 1) {
                 Console.WriteLine("An argument was passed!");
+                return true;
             }
+            return false;
         }
 
         public override int MaxArguments {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Commander.Classes {
     public class CommandCmdHelp : Command {
+
         public override string Name {
             get {
                 return "help";
@@ -20,7 +21,9 @@ namespace Commander.Classes {
 
         public override Parameter[] Parameters {
             get {
-                return new Parameter[] { Parameter.Parse("cmd", null, true) };
+                return new Parameter[] {
+                    Parameter.Parse("cmd", null, true)
+                };
             }
         }
 
@@ -30,7 +33,7 @@ namespace Commander.Classes {
             }
         }
 
-        public override void Run(string[] args = null) {
+        public override bool Run(string[] args = null) {
 
             if (args != null && args.Length == 1) {
 
@@ -39,16 +42,22 @@ namespace Commander.Classes {
                 var cmd = Program.GetCommand(args[0]);
                 Console.WriteLine(cmd.Name + ": " + cmd.ToString());
 
+                return true;
+
             } else {
 
-                for (int i = 0; i < Program.listCommands.Count; i++) {
+                for (var i = 0; i < Program.listCommands.Count; i++) {
 
                     var cmd = Program.listCommands[i];
                     Run(new string[] { cmd.Name });
 
                 }
 
+                return true;
+
             }
+
+            return false;
 
         }
 

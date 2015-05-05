@@ -117,7 +117,7 @@ namespace Commander.Classes {
         /// Runs this command with the specified
         /// </summary>
         /// <param name="args"></param>
-        public abstract void Run(string[] args = null);
+        public abstract bool Run(string[] args = null);
 
         public sealed override string ToString() {
 
